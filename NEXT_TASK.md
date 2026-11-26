@@ -5,7 +5,8 @@ REVIEW：按 Issue #1 已批准范围完成初始化与 QX 静态标题验证实
 
 ## PR或分支
 分支：feat/qx-title-probe；基线 main@f1eb4425c14061389be332bf1d7f633221795b1b。
-PR 尚未创建；创建后更新本节。
+PR：https://github.com/txytwist/antigravity-mobile-enhancer/pull/2 （未合并）。
+固定脚本提交：01c88f7e46d8c2d4b9f8dd8d99112b376e0c862c；Raw 链接及证据见 PR/README。
 
 ## 验证结果
 6 项 Node 自动测试全部通过；脚本语法检查通过；git diff --check 通过。
