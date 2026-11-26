@@ -6,7 +6,7 @@ REVIEW：按 Issue #1 及用户本对话追加要求完成仅记录三项状态�
 ## PR或分支
 分支：feat/qx-title-probe；基线 main@f1eb4425c14061389be332bf1d7f633221795b1b。
 PR：https://github.com/txytwist/antigravity-mobile-enhancer/pull/2 （未合并）。
-固定脚本提交：01c88f7e46d8c2d4b9f8dd8d99112b376e0c862c；Raw 链接及证据见 PR/README。
+固定脚本提交：f4bd20d531bbfe3b138e442fde6a50bedb7594bd；Raw 链接及证据见 PR/README。
 
 ## 验证结果
 9 项 Node 自动测试全部通过；新增精确三布尔日志、异常状态、日志失败仍完成响应的验证。
