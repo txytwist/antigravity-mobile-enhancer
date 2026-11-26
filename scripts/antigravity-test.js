@@ -1,21 +1,24 @@
-/* Quantumult X script-response-body; no network, storage or logging. */
+/* Quantumult X script-response-body; three boolean diagnostics only; no network or storage. */
 (function () {
   var result = {};
+  var htmlReceived = false;
   try {
+    var headers = $response.headers || {};
+    var contentType = Object.keys(headers).filter(function (key) {
+      return key.toLowerCase() === 'content-type';
+    });
+    htmlReceived = contentType.length === 1 &&
+      /^text\/html\s*(?:;|$)/i.test(headers[contentType[0]]) &&
+      typeof $response.body === 'string' && $response.body.length > 0;
     if ($request.url === 'https://antigravity.google.com/remote' &&
-        $request.method === 'GET' && typeof $response.body === 'string') {
+        $request.method === 'GET' && htmlReceived) {
       var requestHeaders = $request.headers || {};
       var destinations = Object.keys(requestHeaders).filter(function (key) {
         return key.toLowerCase() === 'sec-fetch-dest';
       });
       var isDocument = destinations.length === 0 ||
         (destinations.length === 1 && requestHeaders[destinations[0]] === 'document');
-      var headers = $response.headers || {};
-      var contentType = Object.keys(headers).filter(function (key) {
-        return key.toLowerCase() === 'content-type';
-      });
-      if (isDocument && contentType.length === 1 &&
-          /^text\/html\s*(?:;|$)/i.test(headers[contentType[0]])) {
+      if (isDocument) {
         var body = $response.body;
         var inHead = false;
         // shortcut: scan ordinary HTML head tokens, not a full HTML parser; revisit if the site's markup needs more.
@@ -35,6 +38,15 @@
     }
   } catch (error) {
     result = {};
+  }
+  try {
+    console.log(JSON.stringify({
+      scriptTriggered: true,
+      htmlReceived: htmlReceived,
+      titleReplaced: typeof result.body === 'string'
+    }));
+  } catch (error) {
+    // Diagnostic failures must not prevent response completion.
   }
   $done(result);
 }());

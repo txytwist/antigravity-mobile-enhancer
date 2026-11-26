@@ -23,6 +23,7 @@
 - 如存在 Sec-Fetch-Dest，必须为 document；缺失时按精确 URL + GET + text/html 判定候选文档。
 - 不修改请求、API、认证、任务内容、CSP 或安全头，不注入外部代码。
 - 不收集、不记录、不上传正文或个人信息；不提交账号、Token、个人配置和日志。
+- 用户于本对话追加批准诊断版：仅允许 QX 本地 console.log 记录 scriptTriggered、htmlReceived、titleReplaced 三个布尔状态；不记录 URL、请求/响应头、正文、原标题或错误详情。
 - MITM 仅目标主机，不扩大解密范围；测试结束移除目标主机。
 - 只在独立功能分支工作。合并、部署和发布由用户单独决定。
 - 不新增或替换根项目许可。第三方许可只适用于各自 Skill 文件。

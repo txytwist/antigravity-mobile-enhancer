@@ -5,12 +5,12 @@ const { test } = require('node:test');
 const source = fs.readFileSync('scripts/antigravity-test.js', 'utf8');
 const html = '<!doctype html><html><head><title>Antigravity</title></head><body>Task</body></html>';
 const expected = html.replace('Antigravity', 'QX 测试成功');
-function run({ request = { url: 'https://antigravity.google.com/remote', method: 'GET' },
+function run({ logs = [], logger = (message) => logs.push(message), request = { url: 'https://antigravity.google.com/remote', method: 'GET' },
   response = { headers: { 'Content-Type': 'text/html; charset=utf-8' }, body: html } } = {}) {
   const before = JSON.stringify({ request, response });
   let calls = 0;
   let result;
-  vm.runInNewContext(source, { $request: request, $response: response,
+  vm.runInNewContext(source, { console: { log: logger }, $request: request, $response: response,
     $done(value) { calls++; result = value; } }, { timeout: 1000 });
   assert.equal(calls, 1);
   assert.equal(JSON.stringify({ request, response }), before);
@@ -67,4 +67,33 @@ test('exceptions pass through without retrying completion or exposing data', () 
   let missing;
   vm.runInNewContext(source, { $done(result) { missing = JSON.stringify(result); } });
   assert.equal(missing, '{}');
+});
+
+test('diagnostics contain exactly three booleans and no response or request data', () => {
+  const cases = [
+    [{}, [true, true, true]],
+    [{ response: { headers: { 'Content-Type': 'application/json' }, body: 'private task' } }, [true, false, false]],
+    [{ response: { headers: { 'Content-Type': 'text/html' }, body: '<html><head></head></html>' } }, [true, true, false]],
+    [{ response: { headers: { 'Content-Type': 'text/html' }, body: expected } }, [true, true, false]],
+    [{ response: { headers: { 'Content-Type': 'text/html' } } }, [true, false, false]],
+    [{ response: null }, [true, false, false]],
+    [{ request: null }, [true, true, false]],
+  ];
+  for (const [options, values] of cases) {
+    const logs = [];
+    run({ ...options, logs });
+    assert.deepEqual(logs, [JSON.stringify(Object.fromEntries(
+      ['scriptTriggered', 'htmlReceived', 'titleReplaced'].map((key, index) => [key, values[index]])))]);
+  }
+});
+test('diagnostic logger failure still completes response exactly once', () => {
+  assert.deepEqual(run({ logger() { throw new Error('synthetic logger failure'); } }), { body: expected });
+});
+test('response exception logs only status and missing globals still complete', () => {
+  const logs = [];
+  const context = { console: { log(message) { logs.push(message); } },
+    $response: { get headers() { throw new Error('PRIVATE_SENTINEL'); } },
+    $done(result) { assert.equal(JSON.stringify(result), '{}'); } };
+  vm.runInNewContext(source, context);
+  assert.deepEqual(logs, ['{"scriptTriggered":true,"htmlReceived":false,"titleReplaced":false}']);
 });
